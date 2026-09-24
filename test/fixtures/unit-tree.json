@@ -1,0 +1,30 @@
+[
+  {
+    "NodeId": 2001,
+    "Name": "Recycling",
+    "Metadata": { "Code": "recycling" },
+    "Progress": 1,
+    "Children": [
+      { "Name": "Explore", "Progress": 1, "Children": [{ "NodeId": 1, "Progress": 1 }, { "NodeId": 2, "Progress": 1 }] },
+      { "Name": "Practice", "Progress": 1, "Children": [{ "NodeId": 3, "Progress": 1 }] },
+      { "Name": "Test", "Progress": 1, "Children": [{ "NodeId": 4, "Progress": 1 }] }
+    ]
+  },
+  {
+    "NodeId": 2002,
+    "Name": "Movie Making",
+    "Metadata": { "Code": "movie-making" },
+    "Children": [
+      { "Name": "Explore", "Children": [{ "NodeId": 5, "Progress": 1 }, { "NodeId": 6, "Progress": 0 }] },
+      { "Name": "Practice", "Children": [{ "NodeId": 7, "Progress": 0 }, { "NodeId": 8, "Progress": 0 }] },
+      { "Name": "Test", "Children": [{ "NodeId": 9, "Progress": 0 }] }
+    ]
+  },
+  {
+    "NodeId": 2003,
+    "Name": "Unknown Progress",
+    "Children": [
+      { "Name": "Explore", "Children": [{ "NodeId": 10 }] }
+    ]
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "Progress": 0.4213,
+  "Grade": "C",
+  "Children": [
+    { "NodeId": 1001, "ParentNodeId": 9000, "Name": "Unit 1: Everyday Life", "Progress": 1, "Grade": "A" },
+    { "NodeId": 1002, "ParentNodeId": 9000, "Name": "Unit 2: Science and Nature", "Progress": 0.5 },
+    { "NodeId": 1003, "ParentNodeId": 9000, "Name": "Unit 3: Media", "Progress": 0.004 },
+    { "NodeId": 1004, "ParentNodeId": 9000, "Name": "Unit 4: Work", "Progress": 0.996 },
+    { "NodeId": 1005, "ParentNodeId": 9000, "Name": "Unit 5: No progress field" }
+  ]
+}
