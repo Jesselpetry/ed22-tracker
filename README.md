@@ -1,119 +1,124 @@
-# ed22-tracker
+# ED22 Tracker
 
-A read-only progress dashboard for **KMITL English Discoveries (ED22)**, the FE1/FE2 e-learning portal at `ed22.engdis.com/thai`.
+[![CI](https://github.com/Jesselpetry/ed22-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/Jesselpetry/ed22-tracker/actions/workflows/ci.yml)
 
-It shows your overall progress and grade, a breakdown per unit, and which lessons (and which steps within them) you still have to do. It also has a study mode for building vocabulary flashcards per lesson, reviewing them with spaced repetition, and exporting study notes or an Anki deck.
+A read-only progress dashboard and vocabulary trainer for **KMITL English Discoveries (ED22)**, the FE1/FE2 e-learning portal at `ed22.engdis.com/thai`. Use it as a website or from the terminal.
 
-It **never** marks anything complete, submits answers, or reads answer data. See [How read-only is enforced](#how-read-only-is-enforced).
+- **Progress:** overall percentage and grade, every unit, and exactly which lessons and steps (Explore, Practice, Test) are left.
+- **Study:** save words from each lesson with a built-in dictionary lookup, review them with spaced repetition, and export study notes or an Anki deck. Works offline.
+- **Safe by design:** it cannot mark anything complete, submit answers or read answer data. Your password goes straight to ED22 and is never stored. See [SECURITY.md](SECURITY.md).
 
-```
-ED22 progress  67070123
-████████████░░░░░░░░░░░░░░░░░░  42%   Grade C
+<p>
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard with overall progress ring and unit cards" width="640">
+  <img src="docs/screenshots/mobile-study-dark.png" alt="Study page on a phone in dark mode" width="180">
+</p>
+<img src="docs/screenshots/review.png" alt="Flashcard review with Again, Good and Easy buttons" width="640">
 
-┌───┬────────────────────────────┬──────────────────────┬──────┬───────┐
-│ # │ Unit                       │ Progress             │      │ Grade │
-├───┼────────────────────────────┼──────────────────────┼──────┼───────┤
-│ 1 │ Unit 1: Everyday Life      │ ████████████████████ │ 100% │   A   │
-│ 2 │ Unit 2: Science and Nature │ ██████████░░░░░░░░░░ │  50% │   –   │
-│ 3 │ Unit 3: Media              │ █░░░░░░░░░░░░░░░░░░░ │   1% │   –   │
-└───┴────────────────────────────┴──────────────────────┴──────┴───────┘
+> Screenshots use synthetic demo data.
 
-Unit 2: Science and Nature   50%  1/3 lessons complete
-┌──────────────────┬─────────┬──────────┬──────┬───────┐
-│ Lesson           │ Explore │ Practice │ Test │ Total │
-├──────────────────┼─────────┼──────────┼──────┼───────┤
-│ Recycling        │    ✓    │    ✓     │  ✓   │  100% │
-│ Movie Making     │   1/2   │   0/2    │ 0/1  │   17% │
-└──────────────────┴─────────┴──────────┴──────┴───────┘
-```
+## ภาษาไทย
 
-## Install
+เว็บและโปรแกรมสำหรับดูความคืบหน้าวิชา English Discoveries (FE1/FE2) ของ สจล. แบบอ่านอย่างเดียว เห็นว่ายังเหลือบทเรียนไหน ขั้นตอนไหน และมีระบบทบทวนคำศัพท์ (แฟลชการ์ด) ที่ใช้งานออฟไลน์ได้ รหัสผ่านส่งตรงจากเบราว์เซอร์ไปยัง ED22 เท่านั้น ไม่มีเซิร์ฟเวอร์กลาง ไม่เก็บรหัสผ่าน และไม่สามารถทำบทเรียนหรือส่งคำตอบแทนได้ หน้าเว็บรองรับทั้งภาษาไทยและภาษาอังกฤษ
 
-Requires Node.js 20.12 or newer.
+## Features
+
+| | Web app | CLI (`ed22`) |
+| --- | --- | --- |
+| Overall progress, grade, per-unit bars | ✓ | ✓ |
+| Lesson × step breakdown, "to do" filter | ✓ | ✓ |
+| Everything left to do, across all units | ✓ | ✓ |
+| Add words with dictionary lookup, tagged by lesson | ✓ | ✓ |
+| Spaced-repetition review (keyboard: Space, 1/2/3) | ✓ | ✓ |
+| Export Markdown study notes / Anki deck | ✓ | ✓ |
+| Backup and restore cards (same JSON in both) | ✓ | ✓ |
+| Thai / English interface, light / dark theme | ✓ | English |
+| JSON output for scripts | | ✓ |
+
+## Quick start
+
+Requires Node.js 22 or newer.
 
 ```bash
 git clone https://github.com/Jesselpetry/ed22-tracker.git
 cd ed22-tracker
 npm install
-npm link        # optional: makes the `ed22` command available everywhere
 ```
 
-## Use
+**Web app** (local development):
 
 ```bash
-ed22             # interactive dashboard (or: npm start)
-ed22 study       # flashcards and study notes, works offline
-ed22 --json      # machine-readable progress, e.g. for scripts
-ed22 logout      # end the ED22 session and delete the saved token
-ed22 --help
+npm run dev          # http://localhost:5173
 ```
 
-The interactive dashboard lets you open a unit, list every pending lesson across all units, or refresh. When the output is piped (`ed22 | less`), it prints a one-off summary instead.
+**CLI:**
 
-| Option | What it does |
+```bash
+npm run cli              # interactive dashboard
+npm run cli -- study     # flashcards and study notes
+npm run cli -- --help
+
+# optional: install the `ed22` command globally
+cd packages/cli && npm link
+```
+
+### CLI reference
+
+| Command / option | What it does |
 | --- | --- |
+| `ed22` | Interactive dashboard (plain summary when piped) |
+| `ed22 study` | Flashcards and study notes; works offline |
+| `ed22 logout` | End the ED22 session and delete the saved token |
 | `--json` | Print progress as JSON and exit |
 | `--fresh` | Ignore the saved session and sign in again |
 | `--no-save` | Keep the session token in memory only |
-| `--dump` | Save raw API responses to `./ed22-raw.json` for debugging |
+| `--dump` | Save raw API responses to `./ed22-raw.json` (debugging) |
 
-## Study mode
+For scripts, put `ED22_USERNAME` and `ED22_PASSWORD` in `packages/cli/.env` (see `.env.example`; the file is git-ignored). Otherwise the CLI asks, with the password masked.
 
-Open it with `ed22 study`, or pick **Study** from the dashboard menu.
+## How it works
 
-- **Sync lesson list** signs in once and saves your units and lessons (names and progress only) for offline use. The dashboard refreshes this copy whenever it loads every unit.
-- **Add words** asks which lesson the words belong to. It defaults to your first unfinished lesson. Type a word and it looks up definitions in the free [Dictionary API](https://dictionaryapi.dev/) (only the word is sent). Pick one, or write your own meaning in English or Thai. Offline, you just type the meaning.
-- **Review** shows each due card: press `space` to flip, then `1` again, `2` good or `3` easy. Cards move through Leitner boxes that come back after 1, 3, 7, 14 and 30 days. Forgotten cards come back later in the same session.
-- **Export study notes** writes one Markdown file that lists every unit and lesson, what is still to do, and the words you saved for each lesson.
-- **Export flashcards for Anki** writes a file for Anki's *File › Import*, tagged like `ED22::Unit_2_Science_and_Nature::Recycling`.
+```
+packages/core   Shared, platform-agnostic logic: ED22 client with read-only allowlist,
+                progress model, spaced repetition, dictionary lookup, exports
+packages/cli    Terminal app (Node): prompts, tables, token file, deck.json
+apps/web        Static React app (Vite): no backend, talks to ED22 from the browser
+```
 
-## Credentials and sessions
-
-- **Your password is never stored.** You type it into a masked prompt, or set `ED22_USERNAME` / `ED22_PASSWORD` in a `.env` file next to `package.json` (see `.env.example`; `.env` is git-ignored).
-- **Only the session token is cached**, in `~/.config/ed22-tracker/session.json` (`%APPDATA%\ed22-tracker` on Windows). Your flashcards (`deck.json`) and offline lesson list (`course.json`) live in the same folder. The file is created with owner-only permissions (`0600`) and is discarded after 12 hours or as soon as ED22 rejects it. Use `--no-save` to skip caching entirely.
-- Reusing the token also means you are not signed out of an open ED22 browser tab every time you run the tool, since ED22's login endpoint ends other sessions.
-- If your password is still the default (last 5 digits of your student ID), the tool warns you. Anyone who knows your ID can sign in as you, so change it on the ED22 site.
-- Errors are reduced to a status code and a short message. Tokens and request headers are never printed.
-- The API URL can be overridden with `ED22_API_URL` for local testing, but only over HTTPS (plain HTTP is allowed for `localhost` only). The `.env` file is loaded from this package's folder only, never from the directory you run the command in.
-
-## How read-only is enforced
-
-Every request goes through [`src/api/client.js`](src/api/client.js), which checks it against an allowlist **before** anything is sent:
-
-| Method | Route | Purpose |
-| --- | --- | --- |
-| `POST` | `Auth/ForceLogin` | Sign in (creates a session token) |
-| `GET` | `Auth/Logout` | Sign out |
-| `GET` | `CourseTree/GetDefaultCourseProgress` | Overall and per-unit progress |
-| `POST` | `CourseTree/GetUserNodeProgress/{id}` | Lesson tree for one unit (the POST body is a filter; nothing is saved) |
-
-Anything else, including `Progress/SetProgressPerTask`, `UserTestV1/SaveUserTest` and `practiceManager/GetItem`, throws `BlockedRequestError`. `test/client.test.js` checks this.
+ED22's API allows cross-origin requests, so the web app needs no server of its own: the browser signs in to ED22 directly. The site's Content Security Policy only lets the page connect to ED22 and the dictionary API.
 
 ## Development
 
-```bash
-npm test
-```
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Web app dev server |
+| `npm run build` | Production build to `apps/web/dist` |
+| `npm test` | Unit tests for all packages (Node's built-in runner) |
+| `npm run lint` | ESLint, including React hooks rules |
+| `npm run e2e -w @ed22/web` | Builds the app against a mock ED22 and drives it in Chrome |
+| `npm run check` | Lint + tests + build |
 
-Tests use Node's built-in test runner and synthetic fixtures in `test/fixtures/`. No network access or real account is needed.
+Tests never contact the real ED22: they use synthetic fixtures in `packages/core/test/fixtures` and a local mock server.
 
-ED22 has no public API documentation. Per-node progress is read from each node's `Progress` field (a 0–1 fraction), the same field the site uses for the overall total. If a unit shows `?`, run `ed22 --dump` and check the raw response.
+## Deploying
 
-## Roadmap
+See [docs/DEPLOY.md](docs/DEPLOY.md). In short: a manual GitHub Actions workflow publishes `apps/web/dist` to GitHub Pages after lint, tests and the browser test pass. Any other static host works too.
 
-- Suggest vocabulary automatically from lesson reading text (reading content only; never test or answer data). This needs a sample of a real lesson file to map its format first.
-- Optional local web UI
+## Known limitations
+
+- ED22 has no public API documentation. Per-lesson progress is read from each node's `Progress` field; if something shows `?`, run `ed22 --dump` and check the raw data.
+- Signing in ends ED22 sessions in other browser tabs (ED22's `ForceLogin`). Saved sessions avoid signing in again.
+- Dictionary lookups use the free [Dictionary API](https://dictionaryapi.dev/). When it is unavailable, you type the meaning yourself.
 
 ## Credits
 
-- **[BossNz/auto-english-discovery](https://github.com/BossNz/auto-english-discovery)** by [BossNz](https://github.com/BossNz). The original research into the English Discoveries API that this project builds on: the endpoints, the KMITL institution ID, the course-tree structure and the progress-rounding rules.
-- [DeltaLoam/auto-english-discovery](https://github.com/DeltaLoam/auto-english-discovery), a fork of BossNz's project, for the 2026 ED22 endpoint and community-version updates.
+- **[BossNz/auto-english-discovery](https://github.com/BossNz/auto-english-discovery)** by [BossNz](https://github.com/BossNz): the original research into the English Discoveries API this project builds on (endpoints, the KMITL institution ID, the course-tree structure and progress rounding).
+- [DeltaLoam/auto-english-discovery](https://github.com/DeltaLoam/auto-english-discovery), a fork of BossNz's project, for the 2026 ED22 endpoint updates.
 
-This project is a separate, read-only tool. It contains no automation code from those projects.
+This is a separate, read-only project and contains no automation code from them.
 
 ## Disclaimer
 
-Unofficial. Not affiliated with, or endorsed by, KMITL, EF, or English Discoveries. Use it with your own account only and follow your institution's rules.
+Unofficial. Not affiliated with, or endorsed by, KMITL, EF or English Discoveries. Use it with your own account only and follow your institution's rules.
 
 ## License
 

@@ -1,0 +1,14 @@
+{
+  "name": "@ed22/core",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Platform-agnostic ED22 client, progress model and study logic shared by the CLI and web app",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "test": "node --test"
+  }
+}

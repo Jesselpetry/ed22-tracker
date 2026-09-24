@@ -1,22 +1,31 @@
 {
-  "name": "ed22-tracker",
-  "version": "0.1.0",
-  "description": "Read-only progress dashboard for KMITL English Discoveries (ED22)",
+  "name": "ed22-tracker-monorepo",
+  "private": true,
+  "description": "Read-only progress dashboard and study tool for KMITL English Discoveries (ED22): shared core, CLI and static web app",
+  "license": "GPL-3.0-only",
   "type": "module",
-  "bin": {
-    "ed22": "src/cli.js"
-  },
+  "workspaces": [
+    "packages/core",
+    "packages/cli",
+    "apps/web"
+  ],
   "engines": {
-    "node": ">=20.12"
+    "node": ">=22"
   },
   "scripts": {
-    "start": "node src/cli.js",
-    "test": "node --test"
+    "dev": "npm run dev -w @ed22/web",
+    "build": "npm run build -w @ed22/web",
+    "preview": "npm run preview -w @ed22/web",
+    "cli": "node packages/cli/src/cli.js",
+    "test": "npm test --workspaces --if-present",
+    "lint": "eslint .",
+    "check": "npm run lint && npm test && npm run build"
   },
-  "dependencies": {
-    "@inquirer/prompts": "^8.7.2",
-    "chalk": "^6.0.0",
-    "cli-table3": "^0.6.5",
-    "ora": "^9.4.1"
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.11.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.12.0"
   }
 }

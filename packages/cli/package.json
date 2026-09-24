@@ -1,0 +1,24 @@
+{
+  "name": "ed22-tracker",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Read-only progress dashboard and study tool for KMITL English Discoveries (ED22), command-line version",
+  "type": "module",
+  "bin": {
+    "ed22": "src/cli.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@ed22/core": "*",
+    "@inquirer/prompts": "^8.7.2",
+    "chalk": "^6.0.0",
+    "cli-table3": "^0.6.5",
+    "ora": "^9.4.1"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@ed22/web",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Static web app for the ED22 tracker. Talks to ED22 directly from the browser; no backend.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test",
+    "e2e": "node e2e/run.js"
+  },
+  "dependencies": {
+    "@ed22/core": "*",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "vite": "^8.3.1",
+    "playwright-core": "^1.63.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
