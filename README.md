@@ -2,7 +2,9 @@
 
 A read-only progress dashboard for **KMITL English Discoveries (ED22)**, the FE1/FE2 e-learning portal at `ed22.engdis.com/thai`.
 
-It shows your overall progress and grade, a breakdown per unit, and which lessons (and which steps within them) you still have to do. It **never** marks anything complete, submits answers, or reads answer data. See [How read-only is enforced](#how-read-only-is-enforced).
+It shows your overall progress and grade, a breakdown per unit, and which lessons (and which steps within them) you still have to do. It also has a study mode for building vocabulary flashcards per lesson, reviewing them with spaced repetition, and exporting study notes or an Anki deck.
+
+It **never** marks anything complete, submits answers, or reads answer data. See [How read-only is enforced](#how-read-only-is-enforced).
 
 ```
 ED22 progress  67070123
@@ -40,6 +42,7 @@ npm link        # optional: makes the `ed22` command available everywhere
 
 ```bash
 ed22             # interactive dashboard (or: npm start)
+ed22 study       # flashcards and study notes, works offline
 ed22 --json      # machine-readable progress, e.g. for scripts
 ed22 logout      # end the ED22 session and delete the saved token
 ed22 --help
@@ -54,10 +57,20 @@ The interactive dashboard lets you open a unit, list every pending lesson across
 | `--no-save` | Keep the session token in memory only |
 | `--dump` | Save raw API responses to `./ed22-raw.json` for debugging |
 
+## Study mode
+
+Open it with `ed22 study`, or pick **Study** from the dashboard menu.
+
+- **Sync lesson list** signs in once and saves your units and lessons (names and progress only) for offline use. The dashboard refreshes this copy whenever it loads every unit.
+- **Add words** asks which lesson the words belong to. It defaults to your first unfinished lesson. Type a word and it looks up definitions in the free [Dictionary API](https://dictionaryapi.dev/) (only the word is sent). Pick one, or write your own meaning in English or Thai. Offline, you just type the meaning.
+- **Review** shows each due card: press `space` to flip, then `1` again, `2` good or `3` easy. Cards move through Leitner boxes that come back after 1, 3, 7, 14 and 30 days. Forgotten cards come back later in the same session.
+- **Export study notes** writes one Markdown file that lists every unit and lesson, what is still to do, and the words you saved for each lesson.
+- **Export flashcards for Anki** writes a file for Anki's *File › Import*, tagged like `ED22::Unit_2_Science_and_Nature::Recycling`.
+
 ## Credentials and sessions
 
 - **Your password is never stored.** You type it into a masked prompt, or set `ED22_USERNAME` / `ED22_PASSWORD` in a `.env` file next to `package.json` (see `.env.example`; `.env` is git-ignored).
-- **Only the session token is cached**, in `~/.config/ed22-tracker/session.json` (`%APPDATA%\ed22-tracker` on Windows). The file is created with owner-only permissions (`0600`) and is discarded after 12 hours or as soon as ED22 rejects it. Use `--no-save` to skip caching entirely.
+- **Only the session token is cached**, in `~/.config/ed22-tracker/session.json` (`%APPDATA%\ed22-tracker` on Windows). Your flashcards (`deck.json`) and offline lesson list (`course.json`) live in the same folder. The file is created with owner-only permissions (`0600`) and is discarded after 12 hours or as soon as ED22 rejects it. Use `--no-save` to skip caching entirely.
 - Reusing the token also means you are not signed out of an open ED22 browser tab every time you run the tool, since ED22's login endpoint ends other sessions.
 - If your password is still the default (last 5 digits of your student ID), the tool warns you. Anyone who knows your ID can sign in as you, so change it on the ED22 site.
 - Errors are reduced to a status code and a short message. Tokens and request headers are never printed.
@@ -88,7 +101,7 @@ ED22 has no public API documentation. Per-node progress is read from each node's
 
 ## Roadmap
 
-- Offline study notes and flashcards generated from lesson reading and vocabulary content (lesson text only; no test or answer data)
+- Suggest vocabulary automatically from lesson reading text (reading content only; never test or answer data). This needs a sample of a real lesson file to map its format first.
 - Optional local web UI
 
 ## Credits

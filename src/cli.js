@@ -4,19 +4,22 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { select } from "@inquirer/prompts";
 import chalk from "chalk";
-import ora from "ora";
 import { ApiError, BlockedRequestError, createClient } from "./api/client.js";
 import { getOverview, getUnitTree, LoginError } from "./api/ed22.js";
 import { authenticate, signOut } from "./auth/session.js";
 import { apiUrl, DEFAULT_API_URL } from "./config.js";
 import { normalizeLessons, normalizeOverview, stepColumns } from "./progress/normalize.js";
+import { runStudyMenu } from "./study/menu.js";
+import { saveCourse } from "./study/store.js";
 import { pct, renderOverview, renderPending, renderUnit } from "./ui/render.js";
+import { createSpinner, withSpinner } from "./ui/spinner.js";
 
 const HELP = `
 ${chalk.bold("ed22")} - read-only progress dashboard for KMITL English Discoveries
 
 ${chalk.bold("Usage")}
   ed22             interactive dashboard (plain summary when piped)
+  ed22 study       flashcards and study notes (works offline)
   ed22 logout      end the session on ED22 and delete the saved token
 
 ${chalk.bold("Options")}
@@ -66,30 +69,13 @@ class Dashboard {
       if (spinner) spinner.text = `Loading units ${i + 1}/${this.overview.units.length}…`;
       results.push({ unit, lessons: await this.lessonsFor(unit) });
     }
+    // Keep an offline copy of the outline for study mode.
+    await saveCourse(this.overview, results);
     return results;
   }
 
   async refresh() {
     this.setOverview(await getOverview(this.client));
-  }
-}
-
-// ora loops forever on a TTY that reports 0 columns (some ptys/CI), and its
-// default stdin discarding fights with inquirer prompts.
-function createSpinner(options) {
-  const enabled = Boolean(process.stderr.isTTY && process.stderr.columns);
-  return ora({ stream: process.stderr, discardStdin: false, isEnabled: enabled, ...options });
-}
-
-async function withSpinner(text, fn, { silent = false } = {}) {
-  const spinner = createSpinner({ text, isSilent: silent }).start();
-  try {
-    const result = await fn(spinner);
-    spinner.stop();
-    return result;
-  } catch (err) {
-    spinner.stop();
-    throw err;
   }
 }
 
@@ -102,6 +88,7 @@ async function runInteractive(dash) {
       choices: [
         { name: "Open a unit", value: "unit" },
         { name: "Show pending lessons", value: "pending" },
+        { name: "Study: flashcards and notes", value: "study" },
         { name: "Refresh", value: "refresh" },
         { name: "Sign out and forget this device", value: "logout" },
         { name: "Quit", value: "quit" },
@@ -118,6 +105,12 @@ async function runInteractive(dash) {
 
     if (action === "refresh") {
       await withSpinner("Refreshing…", () => dash.refresh());
+      console.log(`\n${renderOverview(dash.overview, dash)}\n`);
+      continue;
+    }
+
+    if (action === "study") {
+      await runStudyMenu({ sync: () => withSpinner("Syncing lesson list…", (s) => dash.allLessons(s)) });
       console.log(`\n${renderOverview(dash.overview, dash)}\n`);
       continue;
     }
@@ -163,6 +156,25 @@ async function runDump(client, overviewTree) {
   console.error(chalk.green(`Raw responses saved to ${file}`));
 }
 
+async function connect(baseClient, values, { quiet = false } = {}) {
+  const spinner = createSpinner({ isSilent: quiet });
+  const auth = await authenticate(baseClient, {
+    fresh: values.fresh,
+    save: !values["no-save"],
+    interactive: Boolean(process.stdin.isTTY) && !values.json,
+    onStatus: (text) => spinner.start(text),
+    onWarning: (text) => {
+      spinner.stop();
+      console.error(chalk.yellow(`! ${text}`));
+    },
+  }).finally(() => spinner.stop());
+
+  if (!quiet && auth.reused) {
+    console.error(chalk.gray(`Using saved session for ${auth.username}. Run \`ed22 logout\` to forget it.`));
+  }
+  return auth;
+}
+
 async function main() {
   loadPackageEnv();
 
@@ -192,26 +204,28 @@ async function main() {
     console.log(had ? chalk.green("Signed out. Saved session deleted.") : "No saved session.");
     return;
   }
+  const terminal = Boolean(process.stdin.isTTY && process.stdout.isTTY);
+
+  if (positionals[0] === "study") {
+    if (!terminal) throw new Error("Study mode needs an interactive terminal.");
+    // Offline first: only sign in when the user asks to sync the lesson list.
+    let dash;
+    return runStudyMenu({
+      sync: async () => {
+        if (!dash) {
+          const { client, overview, username } = await connect(baseClient, values);
+          dash = new Dashboard(client, overview, username);
+        }
+        await withSpinner("Syncing lesson list…", (s) => dash.allLessons(s));
+      },
+    });
+  }
   if (positionals.length > 0) {
     throw new Error(`Unknown command: ${positionals[0]}. Run ed22 --help.`);
   }
 
-  const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY) && !values.json && !values.dump;
-  const quiet = values.json;
-
-  const spinner = createSpinner({ isSilent: quiet });
-  const { client, overview, username, reused } = await authenticate(baseClient, {
-    fresh: values.fresh,
-    save: !values["no-save"],
-    interactive: Boolean(process.stdin.isTTY) && !values.json,
-    onStatus: (text) => spinner.start(text),
-    onWarning: (text) => {
-      spinner.stop();
-      console.error(chalk.yellow(`! ${text}`));
-    },
-  }).finally(() => spinner.stop());
-
-  if (!quiet && reused) console.error(chalk.gray(`Using saved session for ${username}. Run \`ed22 logout\` to forget it.`));
+  const interactive = terminal && !values.json && !values.dump;
+  const { client, overview, username } = await connect(baseClient, values, { quiet: values.json });
 
   if (values.dump) return runDump(client, overview);
 
